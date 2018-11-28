@@ -16,7 +16,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public abstract class Transforms< T extends InvertibleRealTransform & Concatenable< T > & PreConcatenable< T > >
+public abstract class Transforms
+		< T extends InvertibleRealTransform & Concatenable< T > & PreConcatenable< T > >
 {
     public static RealTransform translationAsRealTransform( double[] translation )
     {
@@ -205,6 +206,114 @@ public abstract class Transforms< T extends InvertibleRealTransform & Concatenab
 
 		return scalingTransform;
 	}
+
+
+	public static AffineTransform3D getScalingTransform( double calibration, double targetResolution )
+	{
+
+		AffineTransform3D scaling = new AffineTransform3D();
+
+		for ( int d = 0; d < 3; ++d )
+		{
+			scaling.set( calibration / targetResolution, d, d );
+		}
+
+		return scaling;
+	}
+
+
+	public static <T extends RealType<T> & NativeType< T > >
+	ArrayList< RandomAccessibleInterval< T > > transformAllChannels(
+			RandomAccessibleInterval< T > images,
+			AffineTransform3D registrationTransform,
+			FinalInterval outputImageInterval )
+	{
+		ArrayList< RandomAccessibleInterval< T > > transformedChannels = new ArrayList<>(  );
+
+		long numChannels = images.dimension( 3 );
+
+		for ( int c = 0; c < numChannels; ++c )
+		{
+			final RandomAccessibleInterval< T > channel = Views.hyperSlice( images, 3, c );
+			transformedChannels.add(  createTransformedView( channel, registrationTransform, outputImageInterval ) );
+		}
+
+		return transformedChannels;
+	}
+
+
+	public static < T extends NumericType< T > & NativeType< T > >
+	RandomAccessibleInterval createTransformedView( RandomAccessibleInterval< T > rai,
+													InvertibleRealTransform transform,
+													FinalInterval interval )
+	{
+		final RandomAccessible transformedRA = createTransformedRaView( rai, transform, new NLinearInterpolatorFactory() );
+		final RandomAccessibleInterval< T > transformedIntervalView = Views.interval( transformedRA, interval );
+
+		return transformedIntervalView;
+	}
+
+	public static < T extends NumericType< T > >
+	FinalInterval createTransformedInterval( RandomAccessibleInterval< T > rai, InvertibleRealTransform transform )
+	{
+		final FinalInterval transformedInterval;
+
+		if ( transform instanceof AffineTransform3D )
+		{
+			FinalRealInterval transformedRealInterval = ( ( AffineTransform3D ) transform ).estimateBounds( rai );
+			transformedInterval = asIntegerInterval( transformedRealInterval );
+		}
+		else if ( transform instanceof Scale )
+		{
+			transformedInterval = createScaledInterval( rai, ( Scale ) transform );
+		}
+		else
+		{
+			transformedInterval = null;
+		}
+
+		return transformedInterval;
+	}
+
+	public static FinalInterval asIntegerInterval( FinalRealInterval realInterval )
+	{
+		double[] realMin = new double[ 3 ];
+		double[] realMax = new double[ 3 ];
+		realInterval.realMin( realMin );
+		realInterval.realMax( realMax );
+
+		long[] min = new long[ 3 ];
+		long[] max = new long[ 3 ];
+
+		for ( int d = 0; d < 3; ++d )
+		{
+			min[ d ] = (long) realMin[ d ];
+			max[ d ] = (long) realMax[ d ];
+		}
+
+		return new FinalInterval( min, max );
+	}
+
+
+	public static < T extends NumericType< T > & NativeType< T > >
+	RandomAccessibleInterval createTransformedView( RandomAccessibleInterval< T > rai,
+													InvertibleRealTransform combinedTransform,
+													FinalInterval interval,
+													InterpolatorFactory interpolatorFactory)
+	{
+		final RandomAccessible transformedRA = createTransformedRaView( rai, combinedTransform, interpolatorFactory );
+		final RandomAccessibleInterval< T > transformedIntervalView = Views.interval( transformedRA, interval );
+
+		return transformedIntervalView;
+	}
+
+	public static ArrayList< RealPoint > origin()
+	{
+		final ArrayList< RealPoint > origin = new ArrayList<>();
+		origin.add( new RealPoint( new double[]{ 0, 0, 0 } ) );
+		return origin;
+	}
+
 
 
 	public static double[] getScalingFactors( double[] calibration, double targetResolution )

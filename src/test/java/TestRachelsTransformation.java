@@ -7,9 +7,9 @@ import ij.ImagePlus;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.img.display.imagej.ImageJFunctions;
 import net.imglib2.realtransform.AffineTransform3D;
-import net.imglib2.type.numeric.ARGBType;
 
 import de.embl.cba.transforms.utils.TransformConversions;
+import net.imglib2.type.numeric.ARGBType;
 
 public class TestRachelsTransformation
 {
@@ -34,14 +34,17 @@ public class TestRachelsTransformation
 		final RandomAccessibleInterval musclesProspr = ImageJFunctions.wrapReal( musclesProsprImp );
 		final RandomAccessibleInterval musclesRachel = ImageJFunctions.wrapReal( musclesRachelImp );
 
-		final double[] centre = TransformConversions.getImageCentreInPixelUnits( musclesProspr );
 
 		final AffineTransform3D affineTransform3D = TransformConversions.getAmiraAsAffineTransform3D(
 				new double[]{ -0.61, -0.47, -0.636 },
 				98.6,
 				new double[]{ -64.894, -108.42, +16.081 },
 				0.5,
-				centre );
+				TransformConversions.getImageCentreInPixelUnits( musclesProspr ) );
+
+		System.out.println( TransformConversions.asStringElastixStyle( affineTransform3D.inverse() , 0.0005 ) );
+
+
 
 		Bdv bdv = BdvFunctions.show( musclesProspr,
 				"muscles-prospr-transformed",
@@ -49,7 +52,24 @@ public class TestRachelsTransformation
 		final BdvStackSource rachel = BdvFunctions.show( musclesRachel, "rachel",
 				BdvOptions.options().addTo( bdv ) );
 
+		bdv.getBdvHandle().getViewerPanel().setCurrentViewerTransform( new AffineTransform3D() );
+
 		rachel.setColor( new ARGBType( ARGBType.rgba( 0,255,0,255 ) ) );
+
+
+		//
+		// Get transformation in Elastix style
+		//
+
+//		final String elastixAffine = TransformConversions.getAmiraAsElastixAffine3D(
+//				new double[]{ -0.61, -0.47, -0.636 },
+//				98.6,
+//				new double[]{ -64.894, -108.42, +16.081 },
+//				0.5,
+//				TransformConversions.getImageCentreInPixelUnits( musclesRachel) );
+//
+//
+//		System.out.println( elastixAffine );
 
 	}
 

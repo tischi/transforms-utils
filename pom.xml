@@ -9,7 +9,7 @@
 	</parent>
 
 	<artifactId>transforms-utils</artifactId>
-	<version>0.1.00-SNAPSHOT</version>
+	<version>0.1.01</version>
 
 	<name>Transforms Utilities</name>
 	<description>TODO</description>

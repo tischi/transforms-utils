@@ -35,11 +35,11 @@ public class TestRachelsTransformation
 		final RandomAccessibleInterval musclesRachel = ImageJFunctions.wrapReal( musclesRachelImp );
 
 
-		final AffineTransform3D affineTransform3D = TransformConversions.getAmiraAsAffineTransform3D(
+		final AffineTransform3D affineTransform3D = TransformConversions.getAmiraAsPixelUnitsAffineTransform3D(
 				new double[]{ -0.61, -0.47, -0.636 },
 				98.6,
 				new double[]{ -64.894, -108.42, +16.081 },
-				0.5,
+				new double[]{ 0.5, 0.5, 0.5},
 				TransformConversions.getImageCentreInPixelUnits( musclesProspr ) );
 
 		System.out.println( TransformConversions.asStringElastixStyle( affineTransform3D.inverse() , 0.0005 ) );
@@ -61,7 +61,7 @@ public class TestRachelsTransformation
 		// Get transformation in Elastix style
 		//
 
-//		final String elastixAffine = TransformConversions.getAmiraAsElastixAffine3D(
+//		final String elastixAffine = TransformConversions.get_DOESNOTWORK_USE_INVERSE_AmiraAsElastixAffine3D(
 //				new double[]{ -0.61, -0.47, -0.636 },
 //				98.6,
 //				new double[]{ -64.894, -108.42, +16.081 },

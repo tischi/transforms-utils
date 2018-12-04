@@ -1,7 +1,9 @@
 package de.embl.cba.transforms.utils;
 
 import net.imglib2.RandomAccessibleInterval;
+import net.imglib2.realtransform.AffineTransform2D;
 import net.imglib2.realtransform.AffineTransform3D;
+import net.imglib2.realtransform.Scale;
 import net.imglib2.util.Intervals;
 import org.apache.commons.math3.geometry.euclidean.threed.Rotation;
 import org.apache.commons.math3.geometry.euclidean.threed.RotationConvention;
@@ -11,20 +13,17 @@ import java.util.stream.LongStream;
 
 public abstract class TransformConversions
 {
-	public static AffineTransform3D getAmiraAsAffineTransform3D(
+	public static AffineTransform3D getAmiraAsPixelUnitsAffineTransform3D(
 			double[] amiraRotationAxis,
 			double amiraRotationAngleInDegrees,
 			double[] amiraTranslationVectorInMicrometer,
-			double targetImageVoxelSizeInMicrometer,
-			double[] targetImageCenterInPixelUnits // this is the center of the rotation
+			double[] targetImageVoxelSizeInMicrometer,
+			double[] targetImageCenterInPixels // this is the center of the rotation
 	)
 	{
 
-		// TODO: make also work for anisotropic target image
-
 		// rotate
 		//
-
 		final Vector3D axis = new Vector3D(
 				amiraRotationAxis[ 0 ],
 				amiraRotationAxis[ 1 ],
@@ -34,16 +33,15 @@ public abstract class TransformConversions
 
 		final AffineTransform3D rotationTransform = getRotationTransform( axis, angle );
 
-		final AffineTransform3D transform3D = getRotationAroundImageCenterTransform( rotationTransform, targetImageCenterInPixelUnits );
+		final AffineTransform3D transform3D = getRotationAroundImageCenterTransform( rotationTransform, targetImageCenterInPixels );
 
 		// translate
 		//
-
 		double[] translationInPixels = new double[ 3 ];
 
 		for ( int d = 0; d < 3; ++d )
 		{
-			translationInPixels[ d ] = amiraTranslationVectorInMicrometer[ d ] / targetImageVoxelSizeInMicrometer;
+			translationInPixels[ d ] = amiraTranslationVectorInMicrometer[ d ] / targetImageVoxelSizeInMicrometer[ d ];
 		}
 
 		transform3D.translate( translationInPixels );
@@ -51,14 +49,12 @@ public abstract class TransformConversions
 		return transform3D;
 	}
 
-
-	public static String getAmiraAsElastixAffine3D(
+	public static String get_DOESNOTWORK_USE_INVERSE_AmiraAsElastixAffine3D(
 			double[] amiraRotationAxis,
 			double amiraRotationAngleInDegrees,
 			double[] amiraTranslationVectorInMicrometer,
 			double targetImageVoxelSizeInMicrometer,
-			double[] rotationCentreInPixels // this is the center of the rotation
-	)
+			double[] rotationCentreInPixels ) // this is the center of the rotation)
 	{
 		// Note: Elastix Spatial Units are millimeters
 
@@ -191,5 +187,102 @@ public abstract class TransformConversions
 	{
 		final long[] dimensions = Intervals.dimensionsAsLongArray( musclesProspr );
 		return LongStream.of( dimensions ).mapToDouble( l -> l / 2.0 ).toArray();
+	}
+
+	public static void changeTransformToScaledUnits( AffineTransform3D affineTransform3D, double[] voxelSizeInMicrometer )
+	{
+		final Scale scale = new Scale( voxelSizeInMicrometer );
+		affineTransform3D.concatenate( scale );
+
+		final double[] translation = affineTransform3D.getTranslation();
+		for ( int d = 0; d < 3; ++d )
+		{
+			translation[ d ] *= voxelSizeInMicrometer[ d ];
+		}
+
+		affineTransform3D.setTranslation( translation );
+	}
+
+	public static AffineTransform3D getElastixSimilarityAsBdvAffine()
+	{
+		// TODO.
+		// (Transform "SimilarityTransform")
+		//(NumberOfParameters 7)
+		//(TransformParameters -0.008415 0.004752 -0.001727 -0.002337 -0.001490 0.003296 0.987273)
+		//(InitialTransformParametersFileName "/Users/tischer/Documents/rachel-mellwig-em-prospr-registration/transformations/prospr-to-segmentation/TransformParameters.ManualPreAlignment-Affine_actuallyOnlyEuler.txt")
+		//(HowToCombineTransforms "Compose")
+		//
+		//// Image specific
+		//(FixedImageDimension 3)
+		//(MovingImageDimension 3)
+		//(FixedInternalImagePixelType "float")
+		//(MovingInternalImagePixelType "float")
+		//(Size 550 518 570)
+		//(Index 0 0 0)
+		//(Spacing 0.0005000000 0.0005000000 0.0005000000)
+		//(Origin 0.0000000000 0.0000000000 0.0000000000)
+		//(Direction 1.0000000000 0.0000000000 0.0000000000 0.0000000000 1.0000000000 0.0000000000 0.0000000000 0.0000000000 1.0000000000)
+		//(UseDirectionCosines "false")
+		//
+		//// SimilarityTransform specific
+		//(CenterOfRotationPoint 0.0132582577 0.0387138401 0.1074694348)
+
+
+		return null;
+	}
+
+	public static AffineTransform3D getElastixEulerTransformAsAffineTransformInPixelUnits(
+			String transform,
+			String rotation,
+			double[] imageVoxelSizeInMicrometer )
+	{
+		String[] split = transform.split( " " );
+
+		final double[] angles = new double[ 3 ];
+
+		for ( int d = 0; d < 3; ++d )
+		{
+			angles[ d ] = Double.parseDouble( split[ d ] );
+		}
+
+		final double[] translationInPixels = new double[ 3 ];
+
+		for ( int d = 0; d < 3; ++d )
+		{
+			translationInPixels[ d ] = Double.parseDouble( split[ d + 3 ] ) / ( 0.001 * imageVoxelSizeInMicrometer[ d ] );
+		}
+
+
+		split = rotation.split( " " );
+
+		final double[] rotationCentreVectorInPixelsPositive = new double[ 3 ];
+		final double[] rotationCentreVectorInPixelsNegative = new double[ 3 ];
+
+		for ( int d = 0; d < 3; ++d )
+		{
+			rotationCentreVectorInPixelsPositive[ d ] = Double.parseDouble( split[ d  ] ) / ( 0.001 * imageVoxelSizeInMicrometer[ d ] );
+			rotationCentreVectorInPixelsNegative[ d ] = - Double.parseDouble( split[ d  ] ) / ( 0.001 * imageVoxelSizeInMicrometer[ d ] );
+		}
+
+
+		final AffineTransform3D transform3D = new AffineTransform3D();
+
+		// rotate around rotation centre
+		//
+		transform3D.translate( rotationCentreVectorInPixelsNegative ); // + or - ??
+		for ( int d = 0; d < 3; ++d)
+		{
+			transform3D.rotate( d, angles[ d ]);
+		}
+		final AffineTransform3D translateBackFromRotationCentre = new AffineTransform3D();
+		translateBackFromRotationCentre.translate( rotationCentreVectorInPixelsPositive );
+		transform3D.preConcatenate( translateBackFromRotationCentre );
+
+
+		// translate
+		//
+		transform3D.translate( translationInPixels );
+
+		return transform3D;
 	}
 }

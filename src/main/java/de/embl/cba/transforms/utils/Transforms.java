@@ -446,11 +446,13 @@ public abstract class Transforms
 			double[] normalisedAxis )
 	{
 
-		double rotationAngle = - Math.acos( LinAlgHelpers.dot( normalisedTargetAxis, normalisedAxis ) );
+		// Note that for the dot-product the order of the vectors does not matter.
+		double rotationAngle = Math.acos( LinAlgHelpers.dot( normalisedAxis, normalisedTargetAxis ) );
 
-		//final double rotationAngle = getAngle( normalisedTargetAxis, normalisedAxis );
 		double[] rotationAxis = new double[3];
-		LinAlgHelpers.cross( normalisedTargetAxis, normalisedAxis, rotationAxis );
+
+		// Note that here, for the cross-product, the order of the vectors is important!
+		LinAlgHelpers.cross( normalisedAxis, normalisedTargetAxis, rotationAxis );
 		LinAlgHelpers.normalize( rotationAxis );
 
 		final double[] q = new double[ 4 ];

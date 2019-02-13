@@ -24,10 +24,10 @@ public class TestRachelSegParaMusclesToSegBaselMuscles
 		final RandomAccessibleInterval musclesBasel = ImageJFunctions.wrapReal( musclesBaselImp );
 		final RandomAccessibleInterval musclesPara = ImageJFunctions.wrapReal( musclesParaImp );
 
-
+		// SegmentedParapodium to SegmentedBasel
+		double[] translationInMicrometer = new double[]{ 147.9, 48.13, 103.0661 };
 		double[] rotationAxis = new double[]{ 0.064, 0.762, 0.643 };
 		double rotationAngle = 237.0;
-		double[] translationInMicrometer = new double[]{ 147.9, 48.13, 103.0661 };
 
 		final double[] imageVoxelSizeInMicrometer = { 0.5, 0.5, 0.5 };
 

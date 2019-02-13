@@ -45,7 +45,6 @@ public class TestRachelsTransformation
 		System.out.println( TransformConversions.asStringElastixStyle( affineTransform3D.inverse() , 0.0005 ) );
 
 
-
 		Bdv bdv = BdvFunctions.show( musclesProspr,
 				"muscles-prospr-transformed",
 				BdvOptions.options().sourceTransform( affineTransform3D )).getBdvHandle();

@@ -123,7 +123,9 @@ public abstract class TransformConversions
 		return out;
 	}
 
-	public static AffineTransform3D getRotationAroundImageCenterTransform( AffineTransform3D rotationTransform, double[] targetImageCenterInPixelUnits )
+	public static AffineTransform3D getRotationAroundImageCenterTransform(
+			AffineTransform3D rotationTransform,
+			double[] targetImageCenterInPixelUnits )
 	{
 		double[] translationFromCenterToOrigin = new double[ 3 ];
 		double[] translationFromOriginToCenter = new double[ 3 ];
@@ -171,7 +173,9 @@ public abstract class TransformConversions
 		return out;
 	}
 
-	public static AffineTransform3D getRotationTransform( Vector3D axis, double angle )
+	public static AffineTransform3D getRotationTransform(
+			Vector3D axis,
+			double angle )
 	{
 		final Rotation rotation = new Rotation( axis, angle, RotationConvention.VECTOR_OPERATOR );
 		final double[][] matrix = rotation.getMatrix();

@@ -10,8 +10,8 @@ import net.imglib2.realtransform.*;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.NumericType;
 import net.imglib2.type.numeric.RealType;
+import net.imglib2.util.LinAlgHelpers;
 import net.imglib2.view.Views;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -30,6 +30,32 @@ public abstract class Transforms
         return new Translation( translation );
     }
 
+
+	public static AffineTransform3D rotationAroundCenterTransform(
+			double angle,
+			int axis,
+			double[] center )
+	{
+		double[] translationFromCenterToOrigin = new double[ 3 ];
+		double[] translationFromOriginToCenter = new double[ 3 ];
+
+		for ( int d = 0; d < 3; ++d )
+		{
+			translationFromCenterToOrigin[ d ] = - center[ d ];
+			translationFromOriginToCenter[ d ] = + center[ d ];
+		}
+
+		final AffineTransform3D transform3D = new AffineTransform3D();
+		transform3D.translate( translationFromCenterToOrigin );
+
+		transform3D.rotate( axis, angle );
+
+		final AffineTransform3D transformOriginToCenter = new AffineTransform3D();
+		transformOriginToCenter.translate( translationFromOriginToCenter );
+
+		transform3D.preConcatenate( transformOriginToCenter );
+		return transform3D;
+	}
 
     public static < T extends InvertibleRealTransform & Concatenable< T > & PreConcatenable< T > >
     RealTransform createIdentityAffineTransformation( int numDimensions )
@@ -373,8 +399,8 @@ public abstract class Transforms
 	}
 
 	public static < T extends RealType< T > & NativeType< T > >
-	RandomAccessibleInterval< T > createResampledView( RandomAccessibleInterval< T > input,
-													   double[] scalingFactors )
+	RandomAccessibleInterval< T > scaledView( RandomAccessibleInterval< T > input,
+											  double[] scalingFactors )
 	{
 		// Convert to RealRandomAccessible such that we can obtain values at (infinite) non-integer coordinates
 		RealRandomAccessible< T > rra = Views.interpolate( Views.extendBorder( input ), new NLinearInterpolatorFactory<>() );
@@ -391,6 +417,119 @@ public abstract class Transforms
 
 		return finiteRastered;
 	}
+
+
+	public static < T extends RealType< T > & NativeType< T > >
+	double[] getCenter( RealInterval rai )
+	{
+		int numDimensions = rai.numDimensions();
+
+		double[] center = new double[ numDimensions ];
+
+		for ( int d = 0; d < numDimensions; ++d )
+		{
+			center[ d ] = ( rai.realMax( d ) - rai.realMin( d ) ) / 2 + rai.realMin( d );
+		}
+
+		return center;
+	}
+
+	/**
+	 * Rotation transform which rotates {@code axis} onto {@code targetAxis}
+	 *
+	 * @param normalisedTargetAxis
+	 * @param normalisedAxis
+	 * @return rotationTransform
+	 */
+	public static AffineTransform3D getRotationTransform3D(
+			double[] normalisedTargetAxis,
+			double[] normalisedAxis )
+	{
+
+		double rotationAngle = - Math.acos( LinAlgHelpers.dot( normalisedTargetAxis, normalisedAxis ) );
+
+		//final double rotationAngle = getAngle( normalisedTargetAxis, normalisedAxis );
+		double[] rotationAxis = new double[3];
+		LinAlgHelpers.cross( normalisedTargetAxis, normalisedAxis, rotationAxis );
+		LinAlgHelpers.normalize( rotationAxis );
+
+		final double[] q = new double[ 4 ];
+		LinAlgHelpers.quaternionFromAngleAxis( rotationAxis, rotationAngle, q );
+
+		final double[][] m = new double[ 3 ][ 4 ];
+		LinAlgHelpers.quaternionToR( q, m );
+
+		AffineTransform3D rotation = new AffineTransform3D();
+		rotation.set( m );
+
+		return rotation;
+	}
+
+	public static double getAngle( double[] v1, double[] v2 )
+	{
+		double le = LinAlgHelpers.length( v1 ) * LinAlgHelpers.length( v2 );
+		double alpha = 0.0D;
+		if (le > 0.0D) {
+			double sca = LinAlgHelpers.dot( v1, v2 );
+			sca /= le;
+			if (sca < 0.0D) {
+				sca *= -1.0D;
+			}
+
+			alpha = Math.acos(sca);
+		}
+
+		return alpha;
+	}
+
+	public static double[] getScale( AffineTransform3D sourceTransform )
+	{
+		// https://math.stackexchange.com/questions/237369/given-this-transformation-matrix-how-do-i-decompose-it-into-translation-rotati
+
+		final double[] calibration = new double[ 3 ];
+		for ( int d = 0; d < 3; ++d )
+		{
+			final double[] vector = new double[ 3 ];
+			for ( int i = 0; i < 3 ; i++ )
+			{
+				vector[ i ] = sourceTransform.get( d, i );
+			}
+
+			calibration[ d ] = LinAlgHelpers.length( vector );
+		}
+		return calibration;
+	}
+
+	public static AffineTransform3D rotationAroundIntervalCenterTransform(
+			double angle,
+			int axis,
+			RealInterval interval )
+	{
+
+		final double[] center = getCenter( interval );
+
+		double[] translationFromCenterToOrigin = new double[ 3 ];
+		double[] translationFromOriginToCenter = new double[ 3 ];
+
+		for ( int d = 0; d < 3; ++d )
+		{
+			translationFromCenterToOrigin[ d ] = - center[ d ];
+			translationFromOriginToCenter[ d ] = + center[ d ];
+		}
+
+		final AffineTransform3D transform3D = new AffineTransform3D();
+		transform3D.translate( translationFromCenterToOrigin );
+
+		transform3D.rotate( axis, angle );
+
+		final AffineTransform3D transformOriginToCenter = new AffineTransform3D();
+		transformOriginToCenter.translate( translationFromOriginToCenter );
+
+		transform3D.preConcatenate( transformOriginToCenter );
+		return transform3D;
+	}
+
+
 
 
 }

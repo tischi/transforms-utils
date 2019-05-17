@@ -33,7 +33,8 @@ public abstract class TransformConversions
 
 		final AffineTransform3D rotationTransform = getRotationTransform( axis, angle );
 
-		final AffineTransform3D transform3D = getRotationAroundImageCenterTransform( rotationTransform, targetImageCenterInPixels );
+		final AffineTransform3D transform3D =
+				getRotationAroundImageCenterTransform( rotationTransform, targetImageCenterInPixels );
 
 		// translate
 		//
@@ -41,7 +42,8 @@ public abstract class TransformConversions
 
 		for ( int d = 0; d < 3; ++d )
 		{
-			translationInPixels[ d ] = amiraTranslationVectorInMicrometer[ d ] / targetImageVoxelSizeInMicrometer[ d ];
+			translationInPixels[ d ] =
+					amiraTranslationVectorInMicrometer[ d ] / targetImageVoxelSizeInMicrometer[ d ];
 		}
 
 		transform3D.translate( translationInPixels );
@@ -154,6 +156,7 @@ public abstract class TransformConversions
 		for ( int row = 0; row < 3; ++row )
 			for ( int col = 0; col < 3; ++col )
 				out += affineTransform3D.get( row, col ) + " ";
+
 
 		out += voxelSizeInMillimeter * affineTransform3D.get( 0, 3 ) + " ";
 		out += voxelSizeInMillimeter * affineTransform3D.get( 1, 3 ) + " ";

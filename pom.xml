@@ -10,7 +10,7 @@
 
 	<groupId>de.embl.cba</groupId>
 	<artifactId>transforms-utils</artifactId>
-	<version>0.2.00</version>
+	<version>0.2.01</version>
 
 	<name>Transforms Utilities</name>
 	<description>TODO</description>

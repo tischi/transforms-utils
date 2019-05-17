@@ -17,6 +17,9 @@ public class TestRachelSegParaMusclesToSegBaselMuscles
 	public static void main( String[] args )
 	{
 		final ImagePlus musclesParaImp = IJ.openImage( "/Users/tischer/Documents/rachel-mellwig-em-prospr-registration/data/FIB segmentation/muscle.tif" );
+
+		musclesParaImp.show();
+
 		final ImagePlus musclesEMBLImp = IJ.openImage( "/Users/tischer/Documents/detlev-arendt-clem-registration--data/data/em-segmented/em-segmented-muscles.tif" );
 		final ImagePlus musclesBaselImp = IJ.openImage( "/Users/tischer/Documents/detlev-arendt-clem-registration--data/data/em-segmented/em-segmented-muscles-ariadne-500nm.tif" );
 
@@ -86,18 +89,23 @@ public class TestRachelSegParaMusclesToSegBaselMuscles
 
 		double voxelSizeInMicrometer = 0.01;
 
-		final Scale scale = new Scale( new double[]{ voxelSizeInMicrometer,voxelSizeInMicrometer,voxelSizeInMicrometer } );
+		final Scale scale = new Scale(
+				new double[]{
+						voxelSizeInMicrometer,
+						voxelSizeInMicrometer,
+						voxelSizeInMicrometer } );
 
 		double[] paraFullResImageCentreInMicrometer = new double[]{
-				4560/2.0 * voxelSizeInMicrometer,
-				4008/2.0 * voxelSizeInMicrometer,
-				7246/2.0 * voxelSizeInMicrometer};
+				4560 / 2.0 * voxelSizeInMicrometer,
+				4008 / 2.0 * voxelSizeInMicrometer,
+				7246 / 2.0 * voxelSizeInMicrometer};
 
-		final AffineTransform3D affineTransform3DForBdv = TransformConversions.getAmiraAsPixelUnitsAffineTransform3D(
-				rotationAxis,
-				rotationAngle,
-				translationInMicrometer, // translation in micrometer
-				new double[]{ 1.0, 1.0, 1.0},   // Bdv Transformations are in our case in micrometer units
+		final AffineTransform3D affineTransform3DForBdv =
+				TransformConversions.getAmiraAsPixelUnitsAffineTransform3D(
+					rotationAxis,
+					rotationAngle,
+					translationInMicrometer, // translation in micrometer
+					new double[]{ 1.0, 1.0, 1.0}, // Bdv Transformations are in our case in micrometer units
 				paraFullResImageCentreInMicrometer );
 
 

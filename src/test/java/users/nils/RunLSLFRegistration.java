@@ -3,6 +3,7 @@ package users.nils;
 import de.embl.cba.transforms.utils.LSLFRegistration;
 import mpicbg.spim.data.SpimDataException;
 import net.imagej.ImageJ;
+import net.imglib2.interpolation.randomaccess.ClampingNLinearInterpolatorFactory;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
 
@@ -17,7 +18,9 @@ public class RunLSLFRegistration
 				"/Volumes/cba/exchange/LS_LF_comparison/LenseLeNet_Microscope/OnlyTiffStacksAndAffineMatrixProvided/LS_stack.tif",
 				"/Volumes/cba/exchange/LS_LF_comparison/LenseLeNet_Microscope/XML_fromMultiviewRegistrationPlugin/dataset.xml",
 				new long[]{0,0,0},
-				new long[]{100,100,10}, subsampling );
+				new long[]{2000,2000,2000},
+				new long[]{1,1,100},
+				new ClampingNLinearInterpolatorFactory() );
 
 		registration.run();
 	}

@@ -4,17 +4,16 @@ import bdv.util.BdvFunctions;
 import bdv.util.BdvHandle;
 import bdv.util.BdvOptions;
 import ij.IJ;
-import ij.ImageJ;
 import ij.ImagePlus;
 import itc.utilities.CopyUtils;
 import mpicbg.spim.data.SpimData;
 import mpicbg.spim.data.SpimDataException;
 import mpicbg.spim.data.XmlIoSpimData;
-import net.imagej.ops.Ops;
 import net.imglib2.FinalInterval;
 import net.imglib2.RandomAccessible;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.img.display.imagej.ImageJFunctions;
+import net.imglib2.interpolation.InterpolatorFactory;
 import net.imglib2.interpolation.randomaccess.ClampingNLinearInterpolatorFactory;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.NativeType;
@@ -25,6 +24,7 @@ import java.util.ArrayList;
 
 public class LSLFRegistration < T extends RealType< T > & NativeType< T > >
 {
+	private static InterpolatorFactory interpolatorFactory;
 	private ArrayList< RandomAccessibleInterval > images;
 	private String imagePathTarget;
 	private String imagePathSource;
@@ -40,7 +40,8 @@ public class LSLFRegistration < T extends RealType< T > & NativeType< T > >
 			String bdvXmlPath,
 			long[] min,
 			long[] max,
-			long[] subSampling )
+			long[] subSampling,
+			InterpolatorFactory interpolatorFactory )
 	{
 		this.imagePathTarget = imagePathTarget;
 		this.imagePathSource = imagePathSource;
@@ -48,12 +49,11 @@ public class LSLFRegistration < T extends RealType< T > & NativeType< T > >
 		this.min = min;
 		this.max = max;
 		this.subSampling = subSampling;
+		this.interpolatorFactory = interpolatorFactory;
 	}
 
 	public void run() throws SpimDataException
 	{
-
-		Logger.log( "Open images..." );
 		loadImages();
 
 		Logger.log( "Load transforms: " + bdvXmlPath );
@@ -68,13 +68,15 @@ public class LSLFRegistration < T extends RealType< T > & NativeType< T > >
 		final ArrayList< RandomAccessibleInterval< T > > finalImages
 				= forceImagesIntoRAM( subSampled );
 
-		showTransformedImages( finalImages );
+		showImagesInBdv( finalImages );
+		showImagesInImageJ( finalImages );
+	}
 
-		new ImageJ();
 
+	private void showImagesInImageJ( ArrayList< RandomAccessibleInterval< T > > finalImages )
+	{
 		for ( int i = 0; i < 2; i++ )
-			asImagePlus( Views.subsample( transformed.get( i ), 3,3,3) ,
-					"image" + i ).show();
+			asImagePlus( finalImages.get( i ) , "image_" + i ).show();
 	}
 
 	private ArrayList< RandomAccessibleInterval< T > > forceImagesIntoRAM( ArrayList< RandomAccessibleInterval< T > > subSampled )
@@ -82,6 +84,7 @@ public class LSLFRegistration < T extends RealType< T > & NativeType< T > >
 		final ArrayList< RandomAccessibleInterval< T > > finalImages = new ArrayList<>();
 		for ( int i = 0; i < 2; i++ )
 		{
+			Logger.log( "Creating output image: " + ( i + 1 ) + " / 2"  );
 			final RandomAccessibleInterval< T > finalImage =
 					CopyUtils.copyVolumeRaiMultiThreaded(
 							subSampled.get( i ),
@@ -103,13 +106,14 @@ public class LSLFRegistration < T extends RealType< T > & NativeType< T > >
 		return subSampled;
 	}
 
-	private static void showTransformedImages( ArrayList< RandomAccessibleInterval< T > > transformed )
+	private void showImagesInBdv( ArrayList< RandomAccessibleInterval< T > > images )
 	{
 		final BdvHandle bdv = BdvFunctions.show(
-				transformed.get( 0 ),
+				images.get( 0 ),
 				"reference " ).getBdvHandle();
 
-		BdvFunctions.show( transformed.get( 1 ),
+		BdvFunctions.show(
+				images.get( 1 ),
 				"other",
 				BdvOptions.options().addTo( bdv ) );
 	}
@@ -128,11 +132,12 @@ public class LSLFRegistration < T extends RealType< T > & NativeType< T > >
 			// The transformedRA lives on a voxel grid
 			// with a voxelSpacing as defined in the bdv.xml file,
 			// combined with the affineTransformations
+
 			final RandomAccessible transformedRA =
 					Transforms.createTransformedRaView(
 							images.get( i ),
 							transforms.get( i ),
-							new ClampingNLinearInterpolatorFactory() );
+							interpolatorFactory );
 
 			// Now we need to crop (in voxel units), which should correspond to isotropic
 			// physical units, because that's the partially point of above affineTransformations
@@ -160,7 +165,9 @@ public class LSLFRegistration < T extends RealType< T > & NativeType< T > >
 	private ArrayList< RandomAccessibleInterval > loadImages()
 	{
 		images = new ArrayList<>(  );
+		Logger.log( "Open image: " + imagePathTarget );
 		images.add( openImage( imagePathTarget ) );
+		Logger.log( "Open image: " + imagePathSource );
 		images.add( openImage( imagePathSource ) );
 		return images;
 	}

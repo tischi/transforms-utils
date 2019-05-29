@@ -18,9 +18,10 @@ public class RunLSLFRegistration
 				"/Volumes/cba/exchange/LS_LF_comparison/LenseLeNet_Microscope/OnlyTiffStacksAndAffineMatrixProvided/LS_stack.tif",
 				"/Volumes/cba/exchange/LS_LF_comparison/LenseLeNet_Microscope/XML_fromMultiviewRegistrationPlugin/dataset.xml",
 				new long[]{0,0,0},
-				new long[]{2000,2000,2000},
-				new long[]{1,1,100},
-				new ClampingNLinearInterpolatorFactory() );
+				new long[]{500,1000,300},
+				new long[]{1,1,20},
+				new ClampingNLinearInterpolatorFactory(),
+				false );
 
 		registration.run();
 	}

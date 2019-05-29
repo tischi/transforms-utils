@@ -5,6 +5,7 @@ import bdv.util.BdvHandle;
 import bdv.util.BdvOptions;
 import ij.IJ;
 import ij.ImagePlus;
+import ij.io.FileSaver;
 import itc.utilities.CopyUtils;
 import mpicbg.spim.data.SpimData;
 import mpicbg.spim.data.SpimDataException;
@@ -14,7 +15,6 @@ import net.imglib2.RandomAccessible;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.img.display.imagej.ImageJFunctions;
 import net.imglib2.interpolation.InterpolatorFactory;
-import net.imglib2.interpolation.randomaccess.ClampingNLinearInterpolatorFactory;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
@@ -33,6 +33,9 @@ public class LSLFRegistration < T extends RealType< T > & NativeType< T > >
 	private long[] min;
 	private long[] max;
 	private final long[] subSampling;
+	private ArrayList< String > inputImagePaths;
+	private static FinalInterval crop;
+	private boolean showImages;
 
 	public LSLFRegistration(
 			String imagePathTarget,
@@ -41,10 +44,16 @@ public class LSLFRegistration < T extends RealType< T > & NativeType< T > >
 			long[] min,
 			long[] max,
 			long[] subSampling,
-			InterpolatorFactory interpolatorFactory )
+			InterpolatorFactory interpolatorFactory,
+			boolean showImages )
 	{
 		this.imagePathTarget = imagePathTarget;
 		this.imagePathSource = imagePathSource;
+		this.showImages = showImages;
+		inputImagePaths = new ArrayList<>();
+		inputImagePaths.add( imagePathTarget );
+		inputImagePaths.add( imagePathSource );
+
 		this.bdvXmlPath = bdvXmlPath;
 		this.min = min;
 		this.max = max;
@@ -68,8 +77,26 @@ public class LSLFRegistration < T extends RealType< T > & NativeType< T > >
 		final ArrayList< RandomAccessibleInterval< T > > finalImages
 				= forceImagesIntoRAM( subSampled );
 
-		showImagesInBdv( finalImages );
-		showImagesInImageJ( finalImages );
+		if ( showImages )
+		{
+			showImagesInBdv( finalImages );
+			showImagesInImageJ( finalImages );
+		}
+		saveImages( finalImages );
+
+	}
+
+	private void saveImages( ArrayList< RandomAccessibleInterval< T > > finalImages )
+	{
+		for ( int i = 0; i < 2; i++ )
+		{
+			final FileSaver saver = new FileSaver( asImagePlus( finalImages.get( i ), "image_" + i ) );
+			final String outputPath =
+					inputImagePaths.get( i ).replace(
+							".tif",
+							"_registered.tif" );
+			saver.saveAsTiff( outputPath );
+		}
 	}
 
 
@@ -142,7 +169,7 @@ public class LSLFRegistration < T extends RealType< T > & NativeType< T > >
 			// Now we need to crop (in voxel units), which should correspond to isotropic
 			// physical units, because that's the partially point of above affineTransformations
 
-			final FinalInterval crop = new FinalInterval( min, max );
+			crop = new FinalInterval( min, max );
 
 			transformed.add( Views.interval( transformedRA, crop ) );
 		}

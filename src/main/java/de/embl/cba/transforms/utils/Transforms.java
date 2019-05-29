@@ -109,7 +109,10 @@ public abstract class Transforms
 	}
 
 	public static < T extends NumericType< T > >
-	RandomAccessible createTransformedRaView( RandomAccessibleInterval< T > rai, InvertibleRealTransform combinedTransform, InterpolatorFactory interpolatorFactory )
+	RandomAccessible createTransformedRaView(
+			RandomAccessibleInterval< T > rai,
+			InvertibleRealTransform combinedTransform,
+			InterpolatorFactory interpolatorFactory )
 	{
 		RealRandomAccessible rra =
 				Views.interpolate( Views.extendZero( rai ), interpolatorFactory );

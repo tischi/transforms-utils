@@ -1,3 +1,5 @@
+package users.nils;
+
 import bdv.util.BdvFunctions;
 import bdv.util.BdvHandle;
 import bdv.util.BdvOptions;
@@ -22,7 +24,7 @@ import net.imglib2.view.Views;
 import java.util.ArrayList;
 import java.util.List;
 
-public class TestNilsWagnerTransform
+public class NilsWagnerTransform
 {
 
 	public static void main( String[] args ) throws SpimDataException
@@ -51,24 +53,41 @@ public class TestNilsWagnerTransform
 
 		for ( int i = 0; i < 2; i++ )
 		{
-			asImagePlus( Views.subsample( transformed.get( i ), 3,3,3) , "image" + i ).show();
+			asImagePlus( Views.subsample( transformed.get( i ), 3,3,3) ,
+					"image" + i ).show();
 		}
 	}
 
 	private static void showTransformedImages( ArrayList< RandomAccessibleInterval > transformed )
 	{
-		final BdvHandle bdv = BdvFunctions.show( transformed.get( 0 ), "reference " ).getBdvHandle();
-		BdvFunctions.show( transformed.get( 1 ), "other", BdvOptions.options().addTo( bdv ) );
+		final BdvHandle bdv = BdvFunctions.show(
+				transformed.get( 0 ),
+				"reference " ).getBdvHandle();
+
+		BdvFunctions.show( transformed.get( 1 ),
+				"other",
+				BdvOptions.options().addTo( bdv ) );
 	}
 
-	private static ArrayList< RandomAccessibleInterval > getTransformedImages( ArrayList< RandomAccessibleInterval > images, ArrayList< AffineTransform3D > transforms )
+	private static ArrayList< RandomAccessibleInterval >
+	getTransformedImages(
+			ArrayList< RandomAccessibleInterval > images,
+			ArrayList< AffineTransform3D > transforms )
 	{
 		final ArrayList< RandomAccessibleInterval > transformed = new ArrayList<>();
 
 		for ( int i = 0; i < 2; i++ )
 		{
-			final RandomAccessible transformedRA = Transforms.createTransformedRaView( images.get( i ), transforms.get( i ), new ClampingNLinearInterpolatorFactory() );
-			final FinalInterval transformedInterval = Transforms.createBoundingIntervalAfterTransformation( images.get( i ), transforms.get( i ) );
+			final RandomAccessible transformedRA =
+					Transforms.createTransformedRaView(
+							images.get( i ),
+							transforms.get( i ),
+							new ClampingNLinearInterpolatorFactory() );
+
+			final FinalInterval transformedInterval =
+					Transforms.createBoundingIntervalAfterTransformation(
+							images.get( i ), transforms.get( i ) );
+
 			transformed.add( Views.interval( transformedRA, transformedInterval ) );
 		}
 
@@ -78,9 +97,7 @@ public class TestNilsWagnerTransform
 		final FinalInterval union = Intervals.union( transformed.get( 0 ), transformed.get( 1 ) );
 
 		for ( int i = 0; i < 2; i++ )
-		{
 			transformedUnion.add( Views.interval( transformed.get( i ), union ) );
-		}
 
 		return transformedUnion;
 	}
@@ -93,8 +110,11 @@ public class TestNilsWagnerTransform
 
 		for ( int i = 0; i < 2; i++ )
 		{
-			transforms.add( spimData.getViewRegistrations().getViewRegistration( 0, i ).getModel() );
+			transforms.add(
+					spimData.getViewRegistrations()
+							.getViewRegistration( 0, i ).getModel() );
 		}
+
 		return transforms;
 	}
 
@@ -102,14 +122,12 @@ public class TestNilsWagnerTransform
 	{
 		ArrayList< RandomAccessibleInterval > images = new ArrayList<>(  );
 
-		images.add( (RandomAccessibleInterval)
-				ImageJFunctions.wrap(
+		images.add( ImageJFunctions.wrap(
 						IJ.openImage(
 								"/Volumes/Fiuza USB/LS_LF_comparison/CompareDualView_with_LS/LF_DualView_Deconv_16Bit.tif" ) ) );
 
 
-		images.add( (RandomAccessibleInterval)
-				ImageJFunctions.wrap(
+		images.add( ImageJFunctions.wrap(
 						IJ.openImage(
 								"/Volumes/Fiuza USB/LS_LF_comparison/CompareDualView_with_LS/LC_LS.tif" ) ) );
 		return images;

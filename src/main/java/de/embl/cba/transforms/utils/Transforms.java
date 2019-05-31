@@ -452,10 +452,26 @@ public abstract class Transforms
 		// Note that for the dot-product the order of the vectors does not matter.
 		double rotationAngle = Math.acos( LinAlgHelpers.dot( normalisedAxis, normalisedTargetAxis ) );
 
-		double[] rotationAxis = new double[3];
+		if ( rotationAngle == 0.0 ) return new AffineTransform3D();
 
 		// Note that here, for the cross-product, the order of the vectors is important!
+		double[] rotationAxis = new double[3];
 		LinAlgHelpers.cross( normalisedAxis, normalisedTargetAxis, rotationAxis );
+
+		if ( LinAlgHelpers.length( rotationAxis ) == 0.0 )
+		{
+			// Since the rotation angle is not zero (see above), the vectors are anti-parallel.
+			// This means that the cross product does not work for finding a perpendicular vector.
+			// It also means we need to rotate 180 degrees around any axis that
+			// is perpendicular to any of the two vectors.
+			// That means that the dot-product of the rotation axis and any
+			// of the two vectors should be zero:
+			// u * x + v * y + w * z != 0
+
+			rotationAxis = VectorUtils.getPerpendicularVector( normalisedAxis );
+
+		}
+
 		LinAlgHelpers.normalize( rotationAxis );
 
 		final double[] q = new double[ 4 ];

@@ -82,6 +82,7 @@ public class LSLFRegistration < T extends RealType< T > & NativeType< T > >
 			showImagesInBdv( finalImages );
 			showImagesInImageJ( finalImages );
 		}
+
 		saveImages( finalImages );
 
 	}
@@ -95,6 +96,7 @@ public class LSLFRegistration < T extends RealType< T > & NativeType< T > >
 					inputImagePaths.get( i ).replace(
 							".tif",
 							"_registered.tif" );
+			Logger.log( "Saving: " + outputPath );
 			saver.saveAsTiff( outputPath );
 		}
 	}

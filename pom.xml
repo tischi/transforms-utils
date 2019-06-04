@@ -28,12 +28,12 @@
 						<archive>
 							<manifest>
 								<mainClass>
-									de.embl.cba.transforms.utils.ExecutableClass
+									de.embl.cba.transforms.utils.LSLFRegistration
 								</mainClass>
 							</manifest>
 						</archive>
 						<outputDirectory>
-							/Users/tischer/Documents/transforms-utils/classes/artifacts
+							/Users/tischer/Documents/transforms-utils/target
 						</outputDirectory>
 						<descriptorRefs>
 							<descriptorRef>jar-with-dependencies</descriptorRef>

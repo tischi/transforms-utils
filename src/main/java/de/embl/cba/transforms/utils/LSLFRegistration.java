@@ -15,15 +15,18 @@ import net.imglib2.RandomAccessible;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.img.display.imagej.ImageJFunctions;
 import net.imglib2.interpolation.InterpolatorFactory;
+import net.imglib2.interpolation.randomaccess.ClampingNLinearInterpolatorFactory;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.view.Views;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class LSLFRegistration < T extends RealType< T > & NativeType< T > >
 {
+	public static final String LINEAR_INTERPOLATION = "Linear";
 	private static InterpolatorFactory interpolatorFactory;
 	private ArrayList< RandomAccessibleInterval > images;
 	private String imagePathTarget;
@@ -38,11 +41,11 @@ public class LSLFRegistration < T extends RealType< T > & NativeType< T > >
 	private boolean showImages;
 
 	public LSLFRegistration(
-			String imagePathTarget,
+			String imagePathTarget, // not used?
 			String imagePathSource,
 			String bdvXmlPath,
-			long[] min,
-			long[] max,
+			long[] imageIntervalMin,
+			long[] imageIntervalMax,
 			long[] subSampling,
 			InterpolatorFactory interpolatorFactory,
 			boolean showImages )
@@ -55,10 +58,46 @@ public class LSLFRegistration < T extends RealType< T > & NativeType< T > >
 		inputImagePaths.add( imagePathSource );
 
 		this.bdvXmlPath = bdvXmlPath;
-		this.min = min;
-		this.max = max;
+		this.min = imageIntervalMin;
+		this.max = imageIntervalMax;
 		this.subSampling = subSampling;
 		this.interpolatorFactory = interpolatorFactory;
+	}
+
+	public static < T extends RealType< T > & NativeType< T > > void main( String[] args ) throws SpimDataException
+	{
+		// parse args
+		int i = 0;
+		final String imagePathTarget = args[ i++ ];
+		final String imagePathSource = args[ i++ ];
+		final String bdvXmlPath = args[ i++ ];
+		long[] min = Arrays.stream(args[ i++ ].split(",")).mapToLong(Long::parseLong).toArray();
+		long[] max = Arrays.stream(args[ i++ ].split(",")).mapToLong(Long::parseLong).toArray();
+		long[] subSampling = Arrays.stream(args[ i++ ].split(",")).mapToLong(Long::parseLong).toArray();
+
+		InterpolatorFactory interpolatorFactory;
+		if( args[ 6 ].equals( LINEAR_INTERPOLATION ) )
+		{
+			interpolatorFactory = new ClampingNLinearInterpolatorFactory();
+		}
+		else
+		{
+			System.err.println( "interpolation method not supported" );
+			return;
+		}
+
+		// call method
+		final LSLFRegistration< T > registration = new LSLFRegistration<>(
+				imagePathTarget,
+				imagePathSource,
+				bdvXmlPath,
+				min,
+				max,
+				subSampling,
+				interpolatorFactory,
+				false );
+
+		registration.run();
 	}
 
 	public void run() throws SpimDataException
@@ -113,11 +152,13 @@ public class LSLFRegistration < T extends RealType< T > & NativeType< T > >
 		final ArrayList< RandomAccessibleInterval< T > > finalImages = new ArrayList<>();
 		for ( int i = 0; i < 2; i++ )
 		{
-			Logger.log( "Creating output image: " + ( i + 1 ) + " / 2"  );
+			final int numThreads = Runtime.getRuntime().availableProcessors();
+
+			Logger.log( "Creating output image: " + ( i + 1 ) + " / 2, using " + numThreads + " threads."  );
 			final RandomAccessibleInterval< T > finalImage =
 					CopyUtils.copyVolumeRaiMultiThreaded(
 							subSampled.get( i ),
-							Runtime.getRuntime().availableProcessors() );
+							numThreads );
 
 			finalImages.add( finalImage );
 		}

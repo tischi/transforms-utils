@@ -10,6 +10,9 @@ import itc.utilities.CopyUtils;
 import mpicbg.spim.data.SpimData;
 import mpicbg.spim.data.SpimDataException;
 import mpicbg.spim.data.XmlIoSpimData;
+
+import mpicbg.spim.data.generic.sequence.ImgLoaders;
+import mpicbg.spim.data.sequence.ImgLoader;
 import net.imglib2.FinalInterval;
 import net.imglib2.RandomAccessible;
 import net.imglib2.RandomAccessibleInterval;
@@ -20,6 +23,7 @@ import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.view.Views;
+import spim.fiji.spimdata.imgloaders.XmlIoStackImgLoaderIJ;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -39,6 +43,7 @@ public class LSLFRegistration < T extends RealType< T > & NativeType< T > >
 	private ArrayList< String > inputImagePaths;
 	private static FinalInterval crop;
 	private boolean showImages;
+	private int numImages;
 
 	public LSLFRegistration(
 			String imagePathTarget, // not used?
@@ -56,24 +61,40 @@ public class LSLFRegistration < T extends RealType< T > & NativeType< T > >
 		inputImagePaths = new ArrayList<>();
 		inputImagePaths.add( imagePathTarget );
 		inputImagePaths.add( imagePathSource );
+		this.numImages = inputImagePaths.size();
 
 		this.bdvXmlPath = bdvXmlPath;
 		this.min = imageIntervalMin;
 		this.max = imageIntervalMax;
 		this.subSampling = subSampling;
 		this.interpolatorFactory = interpolatorFactory;
+
+		// needed when packaging code into an executable jar
+		ImgLoaders.registerManually( XmlIoStackImgLoaderIJ.class );
 	}
 
-	public static < T extends RealType< T > & NativeType< T > > void main( String[] args ) throws SpimDataException
+
+	/**
+	 *
+	 *
+	 * java -jar /Users/tischer/Documents/transforms-utils/target/transforms-utils-0.2.01-jar-with-dependencies.jar "/Volumes/cba/exchange/LS_LF_comparison/LenseLeNet_Microscope/OnlyTiffStacksAndAffineMatrixProvided/LF_stack.tif" "/Volumes/cba/exchange/LS_LF_comparison/LenseLeNet_Microscope/OnlyTiffStacksAndAffineMatrixProvided/LS_stack.tif" "/Volumes/cba/exchange/LS_LF_comparison/LenseLeNet_Microscope/XML_fromMultiviewRegistrationPlugin/dataset.xml" "0,0,0" "500,1000,300" "1,1,20" "Linear"
+	 *
+	 *
+	 */
+	public static < T extends RealType< T > & NativeType< T > >
+	void main( String[] args ) throws SpimDataException
 	{
 		// parse args
 		int i = 0;
 		final String imagePathTarget = args[ i++ ];
 		final String imagePathSource = args[ i++ ];
 		final String bdvXmlPath = args[ i++ ];
-		long[] min = Arrays.stream(args[ i++ ].split(",")).mapToLong(Long::parseLong).toArray();
-		long[] max = Arrays.stream(args[ i++ ].split(",")).mapToLong(Long::parseLong).toArray();
-		long[] subSampling = Arrays.stream(args[ i++ ].split(",")).mapToLong(Long::parseLong).toArray();
+		long[] min = Arrays.stream(args[ i++ ].split(","))
+				.mapToLong(Long::parseLong).toArray();
+		long[] max = Arrays.stream(args[ i++ ].split(","))
+				.mapToLong(Long::parseLong).toArray();
+		long[] subSampling = Arrays.stream(args[ i++ ].split(","))
+				.mapToLong(Long::parseLong).toArray();
 
 		InterpolatorFactory interpolatorFactory;
 		if( args[ 6 ].equals( LINEAR_INTERPOLATION ) )
@@ -102,10 +123,10 @@ public class LSLFRegistration < T extends RealType< T > & NativeType< T > >
 
 	public void run() throws SpimDataException
 	{
-		loadImages();
 
-		Logger.log( "Load transforms: " + bdvXmlPath );
 		loadTransformsFromBdvXml( bdvXmlPath );
+
+		loadImages();
 
 		final ArrayList< RandomAccessibleInterval > transformed =
 				createTransformedImages( images, transforms, min, max );
@@ -222,11 +243,11 @@ public class LSLFRegistration < T extends RealType< T > & NativeType< T > >
 
 	private void loadTransformsFromBdvXml( String xmlPath ) throws SpimDataException
 	{
-
+		Logger.log( "Load transforms from: " + bdvXmlPath );
 		SpimData spimData = new XmlIoSpimData().load( xmlPath );
 
 		transforms = new ArrayList<>(  );
-		for ( int i = 0; i < images.size(); i++ )
+		for ( int i = 0; i < numImages; i++ )
 			transforms.add(
 					spimData.getViewRegistrations()
 							.getViewRegistration( 0, i ).getModel() );

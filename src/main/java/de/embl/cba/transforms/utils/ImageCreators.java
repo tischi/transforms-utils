@@ -36,8 +36,9 @@ public abstract class ImageCreators
 		final int dimensionY = ( int ) volume.dimension( 1 );
 		final int dimensionZ = ( int ) volume.dimension( 2 );
 
-		int nz = (int) ( AbstractImg.numElements( Intervals.dimensionsAsLongArray( volume ) )
-				/ ( volume.dimension( 0  ) * volume.dimension( 1 ) ) );
+		int nz = dimensionZ;
+		if ( AbstractImg.numElements( Intervals.dimensionsAsLongArray( volume ) ) >  Integer.MAX_VALUE - 1 )
+			nz  = (int) ( ( Integer.MAX_VALUE / 2 ) / ( volume.dimension( 0  ) * volume.dimension( 1 ) ) );
 
 		final int[] cellSize = {
 				dimensionX,

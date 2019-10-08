@@ -8,6 +8,7 @@ import net.imglib2.interpolation.randomaccess.ClampingNLinearInterpolatorFactory
 import net.imglib2.interpolation.randomaccess.NLinearInterpolatorFactory;
 import net.imglib2.realtransform.*;
 import net.imglib2.type.NativeType;
+import net.imglib2.type.Type;
 import net.imglib2.type.numeric.NumericType;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.util.LinAlgHelpers;
@@ -99,12 +100,14 @@ public abstract class Transforms
 
 	}
 
-	public static < S extends NumericType< S >, T extends NumericType< T > >
-	RandomAccessibleInterval< T > getWithAdjustedOrigin( RandomAccessibleInterval< S > source, RandomAccessibleInterval< T > target )
+	public static < T extends Type< T > >
+	RandomAccessibleInterval< T > getWithAdjustedOrigin(
+			Interval interval,
+			RandomAccessibleInterval< T > rai )
 	{
-		long[] offset = new long[ source.numDimensions() ];
-		source.min( offset );
-		RandomAccessibleInterval translated = Views.translate( target, offset );
+		long[] offset = new long[ interval.numDimensions() ];
+		interval.min( offset );
+		RandomAccessibleInterval translated = Views.translate( rai, offset );
 		return translated;
 	}
 
@@ -119,7 +122,6 @@ public abstract class Transforms
 		rra = RealViews.transform( rra, combinedTransform );
 		return Views.raster( rra );
 	}
-
 
 	public static FinalInterval createBoundingIntervalAfterTransformation( Interval interval, InvertibleRealTransform transform )
 	{

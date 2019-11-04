@@ -4,12 +4,17 @@
 	<parent>
 		<groupId>de.embl.cba</groupId>
 		<artifactId>pom-embl-cba</artifactId>
-		<version>0.3.8</version>
+		<version>0.3.10</version>
 		<relativePath>../pom-embl-cba</relativePath>
 	</parent>
 	<artifactId>transforms-utils</artifactId>
 	<version>0.2.01</version>
 	<url>https://github.com/tischi/transforms-utils</url>
+
+	<!--
+	To create an executable jar with maven type:
+	mvn clean package
+	-->
 	<build>
 		<plugins>
 			<plugin>
@@ -25,13 +30,13 @@
 							<archive>
 								<manifest>
 									<mainClass>
-									de.embl.cba.transforms.utils.LSLFRegistration
-								</mainClass>
+										de.embl.cba.transforms.utils.LSLFRegistration
+									</mainClass>
 								</manifest>
 							</archive>
 							<outputDirectory>
-							/Users/tischer/Documents/transforms-utils/target
-						</outputDirectory>
+								/Users/tischer/Documents/transforms-utils/target
+							</outputDirectory>
 							<descriptorRefs>
 								<descriptorRef>jar-with-dependencies</descriptorRef>
 							</descriptorRefs>

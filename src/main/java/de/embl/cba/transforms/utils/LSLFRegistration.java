@@ -75,10 +75,13 @@ public class LSLFRegistration < T extends RealType< T > & NativeType< T > >
 
 
 	/**
-	 *
+	 * To call this class from the command line type:
 	 *
 	 * java -jar /Users/tischer/Documents/transforms-utils/target/transforms-utils-0.2.01-jar-with-dependencies.jar "/Volumes/cba/exchange/LS_LF_comparison/LenseLeNet_Microscope/OnlyTiffStacksAndAffineMatrixProvided/LF_stack.tif" "/Volumes/cba/exchange/LS_LF_comparison/LenseLeNet_Microscope/OnlyTiffStacksAndAffineMatrixProvided/LS_stack.tif" "/Volumes/cba/exchange/LS_LF_comparison/LenseLeNet_Microscope/XML_fromMultiviewRegistrationPlugin/dataset.xml" "0,0,0" "500,1000,300" "1,1,20" "Linear"
 	 *
+	 *
+	 * To build above jar type:
+	 * mvn clean package
 	 *
 	 */
 	public static < T extends RealType< T > & NativeType< T > >
@@ -267,7 +270,6 @@ public class LSLFRegistration < T extends RealType< T > & NativeType< T > >
 	{
 		return ImageJFunctions.wrap( IJ.openImage( imagePath ) );
 	}
-
 
 	public static ImagePlus asImagePlus( RandomAccessibleInterval rai, String title )
 	{

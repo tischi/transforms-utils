@@ -9,7 +9,7 @@ import net.imglib2.type.numeric.RealType;
 
 public class RunLSLFRegistration
 {
-	public static  < T extends RealType< T > & NativeType< T > > void main( String[] args ) throws SpimDataException
+	public static< T extends RealType< T > & NativeType< T > > void main( String[] args ) throws SpimDataException
 	{
 		new ImageJ().ui().showUI();
 

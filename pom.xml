@@ -1,18 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
+
 	<parent>
 		<groupId>org.scijava</groupId>
 		<artifactId>pom-scijava</artifactId>
 		<version>29.0.0-beta-3</version>
 	</parent>
+
 	<groupId>de.embl.cba</groupId>
 	<artifactId>transforms-utils</artifactId>
 	<version>0.3.0-SNAPSHOT</version>
-	<url>https://github.com/tischi/transforms-utils</url>
 
 	<name>Transforms Utilities</name>
 	<description>TODO</description>
+	<url>https://github.com/tischi/transforms-utils</url>
 	<inceptionYear>2018</inceptionYear>
 	<organization>
 		<name>EMBL</name>
@@ -24,6 +26,7 @@
 			<distribution>repo</distribution>
 		</license>
 	</licenses>
+
 	<developers>
 		<developer>
 			<id>tischi</id>
@@ -43,12 +46,14 @@
 			<name>TODO</name>
 		</contributor>
 	</contributors>
+
 	<mailingLists>
 		<mailingList>
 			<name>Image.sc Forum</name>
 			<archive>https://forum.image.sc/</archive>
 		</mailingList>
 	</mailingLists>
+
 	<scm>
 		<connection>scm:git:git://github.com/tischi/transforms-utils</connection>
 		<developerConnection>scm:git:git@github.com/tischi/transforms-utils</developerConnection>
@@ -62,6 +67,7 @@
 	<ciManagement>
 		<system>None</system>
 	</ciManagement>
+
 	<properties>
 		<package-name>de.embl.cba.transforms.utils</package-name>
 		<license.licenseName>bsd_2</license.licenseName>
@@ -69,13 +75,7 @@
 
 		<image-transform-converters.version>0.1.2-SNAPSHOT</image-transform-converters.version>
 	</properties>
-	<repositories>
-		<!-- NB: for SciJava dependencies -->
-		<repository>
-			<id>scijava.public</id>
-			<url>https://maven.scijava.org/content/groups/public</url>
-		</repository>
-	</repositories>
+
 	<dependencies>
 		<dependency>
 			<groupId>net.imagej</groupId>
@@ -107,4 +107,12 @@
 			<version>${image-transform-converters.version}</version>
 		</dependency>
 	</dependencies>
+
+	<repositories>
+		<!-- NB: for SciJava dependencies -->
+		<repository>
+			<id>scijava.public</id>
+			<url>https://maven.scijava.org/content/groups/public</url>
+		</repository>
+	</repositories>
 </project>
